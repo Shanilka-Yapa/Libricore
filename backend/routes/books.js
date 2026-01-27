@@ -16,7 +16,11 @@ const upload = multer({ storage });
 // Get all books
 router.get("/", async (req, res) => {
   try {
-    const books = await Book.find(); // fetch all books from database
+    const authHeader = req.headers["authorization"];
+    if (!authHeader) return res.status(401).json({ message: "Not logged in" });
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const books = await Book.find({ user: decoded.id }); // fetch all books from database
     res.json({ books });
   } catch (err) {
     console.error(err);
@@ -31,6 +35,8 @@ router.post("/", upload.single("coverImage"), async (req, res) => {
     if (!authHeader) return res.status(401).json({ message: "Not logged in" });
 
     const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  
     if (!token) return res.status(401).json({ message: "Not logged in" });
 
     let userId;
@@ -51,6 +57,7 @@ router.post("/", upload.single("coverImage"), async (req, res) => {
       publishedDate,
       description,
       coverImage,
+      user: userId,
     });
 
     await newBook.save();
