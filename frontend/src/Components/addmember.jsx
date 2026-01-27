@@ -20,7 +20,7 @@ const AddMember = () => {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://65.0.54.172:5000/api/members", {
+      const res = await fetch("http://65.0.31.24:5000/api/members", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -12,7 +12,7 @@ const Members = () => {
     const fetchMembers = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://65.0.54.172:5000/api/members", {
+        const res = await fetch("http://65.0.31.24:5000/api/members", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();

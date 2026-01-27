@@ -16,7 +16,7 @@ const ViewBooks = () => {
       }
 
       try {
-        const res = await fetch("http://65.0.54.172:5000/api/books", {
+        const res = await fetch("http://65.0.31.24:5000/api/books", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -44,7 +44,7 @@ const ViewBooks = () => {
     if (window.confirm("Are you sure you want to delete this book?")) {
       try {
         const token = localStorage.getItem("token");
-        await fetch(`http://65.0.54.172:5000/api/books/${id}`, {
+        await fetch(`http://65.0.31.24:5000/api/books/${id}`, {
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -96,7 +96,7 @@ const ViewBooks = () => {
             <div className="h-64 bg-gray-100 flex items-center justify-center">
               {book.coverImage ? (
                 <img
-                  src={`http://65.0.54.172:5000/${book.coverImage.replace(/\\/g, "/")}`}
+                  src={`http://65.0.31.24:5000/${book.coverImage.replace(/\\/g, "/")}`}
                   alt={book.title}
                   className="w-auto h-full object-contain"
                 />

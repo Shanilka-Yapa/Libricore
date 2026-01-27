@@ -18,8 +18,8 @@ const Overdue = () => {
   const fetchData = async () => {
     try {
       const [borrowingsRes, paidRes] = await Promise.all([
-        fetch("http://65.0.54.172:5000/api/borrowings"),
-        fetch("http://65.0.54.172:5000/api/borrowings/paid"),
+        fetch("http://65.0.31.24:5000/api/borrowings"),
+        fetch("http://65.0.31.24:5000/api/borrowings/paid"),
       ]);
 
       const borrowingsData = await borrowingsRes.json();
@@ -82,7 +82,7 @@ const Overdue = () => {
 
     try {
       const res = await fetch(
-        `http://65.0.54.172:5000/api/borrowings/${selectedBook.id}/pay`,
+        `http://65.0.31.24:5000/api/borrowings/${selectedBook.id}/pay`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },

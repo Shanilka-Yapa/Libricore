@@ -18,7 +18,7 @@ const Dashboard = () => {
         const token = localStorage.getItem("token");
 
         // --- Fetch Books ---
-        const booksRes = await fetch("http://65.0.54.172:5000/api/books", {
+        const booksRes = await fetch("http://65.0.31.24:5000/api/books", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const booksData = await booksRes.json();
@@ -30,7 +30,7 @@ const Dashboard = () => {
         }
 
         // --- Fetch Members ---
-        const membersRes = await fetch("http://65.0.54.172:5000/api/members", {
+        const membersRes = await fetch("http://65.0.31.24:5000/api/members", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const membersData = await membersRes.json();
@@ -44,7 +44,7 @@ const Dashboard = () => {
         }
 
         // Fetch Recent Borrowings for Dashboard table 
-        const recentRes = await fetch("http://65.0.54.172:5000/api/borrowings", {
+        const recentRes = await fetch("http://65.0.31.24:5000/api/borrowings", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const recentData = await recentRes.json();
@@ -62,7 +62,7 @@ const Dashboard = () => {
 
 
         // --- Fetch Loans (Borrowed or Overdue) ---
-        const loanres = await fetch("http://65.0.54.172:5000/api/borrowings", {
+        const loanres = await fetch("http://65.0.31.24:5000/api/borrowings", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const loanData = await loanres.json();

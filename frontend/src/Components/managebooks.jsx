@@ -19,7 +19,7 @@ const ManageBooks = () => {
   // ✅ Fetch books from backend & auto-mark overdue ones
   const fetchBorrowings = async () => {
     try {
-      const res = await fetch("http://65.0.54.172:5000/api/borrowings");
+      const res = await fetch("http://65.0.31.24:5000/api/borrowings");
       const data = await res.json();
       if (res.ok && data.borrowings) {
         const today = new Date();
@@ -53,7 +53,7 @@ const ManageBooks = () => {
         );
       }
 
-      const res = await fetch(`http://65.0.54.172:5000/api/borrowings/${id}`, {
+      const res = await fetch(`http://65.0.31.24:5000/api/borrowings/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
@@ -75,7 +75,7 @@ const ManageBooks = () => {
       const id = `B${(books.length + 1).toString().padStart(3, "0")}`;
       const newEntry = { id, ...newBorrowing };
 
-      const res = await fetch("http://65.0.54.172:5000/api/borrowings", {
+      const res = await fetch("http://65.0.31.24:5000/api/borrowings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newEntry),

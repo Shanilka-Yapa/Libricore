@@ -35,7 +35,7 @@ jobs:
       - name: SSH and Update EC2
         uses: appleboy/ssh-action@master
         with:
-          host: 65.0.54.172
+          host: 65.0.31.24
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |

@@ -48,7 +48,7 @@ const AddBook = () => {
     if (bookData.coverImage) formData.append("coverImage", bookData.coverImage);
 
     try {
-      const res = await fetch("http://65.0.54.172:5000/api/books", {
+      const res = await fetch("http://65.0.31.24:5000/api/books", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
