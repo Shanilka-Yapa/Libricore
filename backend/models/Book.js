@@ -6,7 +6,12 @@ const BookSchema = new mongoose.Schema({
   genre: String,
   publishedDate: Date,
   description: String,
-  coverImage: String, // store file path
+  coverImage: String,
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
 });
 
 module.exports = mongoose.model("Book", BookSchema);

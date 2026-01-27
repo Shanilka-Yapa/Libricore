@@ -8,6 +8,11 @@ const PaidFineSchema = new mongoose.Schema({
   borrowedDate: { type: String },
   returnedDate: { type: String },
   status: { type: String, default: "Paid" },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
 });
 
 module.exports = mongoose.model("PaidFine", PaidFineSchema);

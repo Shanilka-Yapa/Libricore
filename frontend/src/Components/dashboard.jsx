@@ -122,7 +122,7 @@ const Dashboard = () => {
               Dashboard
             </h1>
             <p className="text-sm text-gray-600">
-              Overview of library activity and quick actions of the library
+              Overview of library activity and quick actions
             </p>
           </div>
         </div>
