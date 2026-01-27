@@ -1,0 +1,46 @@
+name: Deploy Libricore
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and Push Images
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          # The --no-cache flag is the "magic" that fixes the localhost error
+          docker build --no-cache -t $REGISTRY/my-backend:latest ./backend
+          docker build --no-cache -t $REGISTRY/my-frontend:latest ./frontend
+          docker push $REGISTRY/my-backend:latest
+          docker push $REGISTRY/my-frontend:latest
+
+      - name: SSH and Update EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: 65.0.54.172
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/app
+            aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 086627396918.dkr.ecr.ap-south-1.amazonaws.com
+            docker-compose pull
+            docker-compose up -d
+            docker image prune -f

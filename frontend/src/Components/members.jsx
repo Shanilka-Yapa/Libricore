@@ -1,0 +1,121 @@
+import React, { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+
+const Members = () => {
+  const navigate = useNavigate();
+  const [members, setMembers] = useState([]);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  // Fetch members from backend with token
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch("http://65.0.54.172:5000/api/members", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          // Handle both array or { members: [...] } formats
+          const membersArray = Array.isArray(data) ? data : data.members || [];
+          setMembers(membersArray);
+        } else {
+          console.error("Failed to fetch members");
+        }
+      } catch (error) {
+        console.error("Error fetching members:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMembers();
+  }, []);
+
+  // Filter members based on search input
+  const filteredMembers = members.filter(
+    (member) =>
+      member.name?.toLowerCase().includes(search.toLowerCase()) ||
+      (member.id?.toString().toLowerCase().includes(search.toLowerCase()))
+  );
+
+  return (
+    <div className="min-h-screen bg-[#F5E8E4] p-6">
+      <div className="max-w-5xl mx-auto bg-white shadow-xl rounded-2xl p-8">
+        {/* Top Bar: Back + Add Member */}
+        <div className="flex justify-between items-center mb-6">
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="bg-[#4B0000] text-white px-4 py-2 rounded-lg hover:bg-[#3b0000] transition-all"
+          >
+            ←
+          </button>
+
+          <Link
+            to="/add-member"
+            className="bg-[#4B0000] text-white px-4 py-2 rounded-lg hover:bg-[#3b0000] transition-all"
+          >
+            + Add Member
+          </Link>
+        </div>
+
+        {/* Header */}
+        <h1 className="text-3xl font-bold text-center text-[#4B0000] mb-6">
+          👥 Library Members
+        </h1>
+
+        {/* Search Bar */}
+        <div className="flex justify-end mb-4">
+          <input
+            type="text"
+            placeholder="Search by name or ID..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#4B0000] focus:outline-none w-1/3"
+          />
+        </div>
+
+        {/* Members Table */}
+        <div className="overflow-x-auto">
+          {loading ? (
+            <p className="text-center text-gray-500 py-4 italic">Loading...</p>
+          ) : filteredMembers.length > 0 ? (
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-[#4B0000] text-white text-left">
+                  <th className="py-3 px-4">ID No</th>
+                  <th className="py-3 px-4">Name</th>
+                  <th className="py-3 px-4">Age</th>
+                  <th className="py-3 px-4">Address</th>
+                  <th className="py-3 px-4">Phone Number</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredMembers.map((member) => (
+                  <tr
+                    key={member._id || member.id}
+                    className="border-b hover:bg-gray-50 transition-all"
+                  >
+                    <td className="py-3 px-4">{member.id || member._id}</td>
+                    <td className="py-3 px-4">{member.name}</td>
+                    <td className="py-3 px-4">{member.age}</td>
+                    <td className="py-3 px-4">{member.address}</td>
+                    <td className="py-3 px-4">{member.phone}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="text-center text-gray-500 italic py-4">
+              No members found.
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Members;
