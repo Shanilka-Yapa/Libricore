@@ -26,21 +26,23 @@ jobs:
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          # The --no-cache flag is the "magic" that fixes the localhost error
+          # The --no-cache flag ensures old localhost/IP refs are purged
           docker build --no-cache -t $REGISTRY/my-backend:latest ./backend
           docker build --no-cache -t $REGISTRY/my-frontend:latest ./frontend
           docker push $REGISTRY/my-backend:latest
           docker push $REGISTRY/my-frontend:latest
 
-      - name: SSH and Update EC2
+      - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@master
         with:
-          host: 65.0.31.24
+          host: 65.0.31.24  # Your current EC2 IP
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd ~/app
+            # Logs into ECR on the EC2 so it has permission to pull
             aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 086627396918.dkr.ecr.ap-south-1.amazonaws.com
             docker-compose pull
             docker-compose up -d
+            # Optional: cleans up old images to save disk space
             docker image prune -f

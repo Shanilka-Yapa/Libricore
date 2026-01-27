@@ -5,7 +5,7 @@ pipeline {
         // AWS & ECR Configuration
         REGISTRY    = "086627396918.dkr.ecr.ap-south-1.amazonaws.com"
         REGION      = "ap-south-1"
-        EC2_IP      = "65.0.54.172"
+        EC2_IP      = "65.0.31.24"
         EC2_USER    = "ec2-user"
         // AWS Credentials ID from Jenkins Manage Credentials
         AWS_CREDS   = "aws-credentials" 
