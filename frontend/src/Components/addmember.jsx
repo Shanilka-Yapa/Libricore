@@ -19,11 +19,19 @@ const AddMember = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+    if (!token){
+      alert("You must be logged in to add a member");
+      navigate("/");
+      return;
+    }
+
     try {
       const res = await fetch("http://65.0.31.24:5000/api/members", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify(memberData),
       });
@@ -42,6 +50,7 @@ const AddMember = () => {
         navigate("/members");
       } else {
         alert("❌ " + (data.message || "Failed to add member"));
+        if(res.status === 401) navigate("/");
       }
     } catch (error) {
       console.error("Error:", error);

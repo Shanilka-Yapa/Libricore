@@ -19,7 +19,13 @@ const ManageBooks = () => {
   // ✅ Fetch books from backend & auto-mark overdue ones
   const fetchBorrowings = async () => {
     try {
-      const res = await fetch("http://65.0.31.24:5000/api/borrowings");
+      const token = localStorage.getItem("token")||sessionStorage.getItem("token");
+      const res = await fetch("http://65.0.31.24:5000/api/borrowings",{
+        method: "GET",
+        headers: { 
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json" }
+      });
       const data = await res.json();
       if (res.ok && data.borrowings) {
         const today = new Date();
@@ -33,7 +39,7 @@ const ManageBooks = () => {
             return b;
           })
         );
-        setBooks(updatedBooks);
+        setBooks(data.borrowings);
       }
     } catch (err) {
       console.error("Error fetching borrowings:", err);

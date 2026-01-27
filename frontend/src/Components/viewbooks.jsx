@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 const ViewBooks = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,13 +22,14 @@ const ViewBooks = () => {
         });
         const data = await res.json();
         if (res.ok) {
-          setBooks(data.books);
+          setBooks(data.books || []);
         } else {
-          alert(data.message || "Failed to fetch books");
+          console.error(data.message || "Failed to fetch books");
         }
       } catch (err) {
-        console.error(err);
-        alert("Error connecting to server");
+        console.error("Connection error:",err);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -43,14 +45,19 @@ const ViewBooks = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this book?")) {
       try {
-        const token = localStorage.getItem("token");
-        await fetch(`http://65.0.31.24:5000/api/books/${id}`, {
+        const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+        const res =await fetch(`http://65.0.31.24:5000/api/books/${id}`, {
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        setBooks(books.filter((b) => b._id !== id));
+        if (!res.ok) {
+          setBooks(books.filter((b) => b._id !== id));
+        } else {
+          const errorData = await res.json();
+          alert(errorData.message || "Failed to delete book");
+        }
       } catch (error) {
         console.error("Error deleting book:", error);
         alert("Failed to delete book");

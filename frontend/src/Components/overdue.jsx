@@ -13,7 +13,7 @@ const Overdue = () => {
     oneDayFine: "",
     totalFine: "",
   });
-
+ const token = localStorage.getItem("token") || sessionStorage.getItem("token");
   // ✅ Fetch Overdue & Paid records from backend
   const fetchData = async () => {
     try {
@@ -26,14 +26,13 @@ const Overdue = () => {
       const paidData = await paidRes.json();
 
       if (borrowingsRes.ok) {
-        const overdueList = borrowingsData.borrowings.filter(
-          (b) => b.status === "Overdue"
-        );
+        const list = borrowingsData.borrowings || borrowingsData;
+        const overdueList = list.filter((b) => b.status === "Overdue");
         setOverdueBooks(overdueList);
       }
 
       if (paidRes.ok) {
-        setPaidBooks(paidData.paidFines);
+        setPaidBooks(paidData.paidFines || []);
       }
     } catch (err) {
       console.error("Error fetching data:", err);
@@ -41,12 +40,17 @@ const Overdue = () => {
   };
 
   useEffect(() => {
+    if (!token) navigate("/");
     fetchData();
-  }, []);
+  }, [navigate]);
 
   // ✅ Open fine calculator popup
   const openCalculator = (book) => {
     setSelectedBook(book);
+    setFormData({
+      ...formData,
+      borrowedDate: book.loanDate ? new Date(book.loanDate).toISOString().split("T")[0] : "",
+    });
     setShowCalc(true);
   };
 
@@ -57,35 +61,41 @@ const Overdue = () => {
       borrowedDate: "",
       returnedDate: "",
       oneDayFine: "",
-      totalFine: "",
+      totalFine: "0.00",
     });
   };
 
   // ✅ Handle fine input change & auto-calc
   const handleChange = (e) => {
     const { name, value } = e.target;
-    const updated = { ...formData, [name]: value };
+    setFormData((prev) =>{
+    const updated = { ...prev, [name]: value };
 
     if (updated.borrowedDate && updated.returnedDate && updated.oneDayFine) {
       const start = new Date(updated.borrowedDate);
       const end = new Date(updated.returnedDate);
-      const days = Math.max(0, (end - start) / (1000 * 60 * 60 * 24));
+      const diffTime = end - start;
+      const days = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
       updated.totalFine = (days * parseFloat(updated.oneDayFine)).toFixed(2);
     }
-
-    setFormData(updated);
+    return updated;
+    });
   };
 
   // ✅ Mark book as Paid
   const handleMarkPaid = async () => {
     if (!selectedBook) return;
+    const bookId = selectedBook.id || selectedBook._id;
 
     try {
       const res = await fetch(
-        `http://65.0.31.24:5000/api/borrowings/${selectedBook.id}/pay`,
+        `http://65.0.31.24:5000/api/borrowings/${bookId}/pay`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify({
             borrowedDate: formData.borrowedDate,
             returnedDate: formData.returnedDate,
@@ -95,7 +105,6 @@ const Overdue = () => {
         }
       );
 
-      const data = await res.json();
       if (res.ok) {
         alert("✅ Fine recorded and marked as Paid!");
         closeCalculator();
@@ -111,14 +120,15 @@ const Overdue = () => {
 
   // ✅ Colored status labels
   const renderStatus = (status) => {
-    let colorClass = "";
-    if (status === "Overdue") colorClass = "bg-red-100 text-red-700";
-    else if (status === "Borrowed") colorClass = "bg-yellow-100 text-yellow-700";
-    else if (status === "Returned") colorClass = "bg-green-100 text-green-700";
-    else if (status === "Paid") colorClass = "bg-blue-100 text-blue-700";
+    const colors = {
+      Overdue: "bg-red-100 text-red-700",
+      Borrowed: "bg-yellow-100 text-yellow-700",
+      Returned: "bg-green-100 text-green-700",
+      Paid: "bg-blue-100 text-blue-700",
+    };
 
     return (
-      <span className={`px-3 py-1 rounded-full text-sm font-semibold ${colorClass}`}>
+      <span className={`px-3 py-1 rounded-full text-sm font-semibold ${colors[status] || "bg-gray-100 text-gray-700"}`}>
         {status}
       </span>
     );

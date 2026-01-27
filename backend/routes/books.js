@@ -13,13 +13,22 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+const verifyUser = (req, res) => {
+  const authHeader = req.headers["authorization"];
+  if (!authHeader) return null;
+  const token = authHeader.split(" ")[1];
+  try {
+    return jwt.verify(token, process.env.JWT_SECRET);
+  }catch (err){
+    return null;
+  }
+};
+
 // Get all books
 router.get("/", async (req, res) => {
   try {
-    const authHeader = req.headers["authorization"];
-    if (!authHeader) return res.status(401).json({ message: "Not logged in" });
-    const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = verifyUser(req);
+    if (!decoded) return res.status(401).json({ message: "Not logged in" });
     const books = await Book.find({ user: decoded.id }); // fetch all books from database
     res.json({ books });
   } catch (err) {
@@ -31,25 +40,12 @@ router.get("/", async (req, res) => {
 // Add book route (only for logged-in users)
 router.post("/", upload.single("coverImage"), async (req, res) => {
   try {
-    const authHeader = req.headers["authorization"];
-    if (!authHeader) return res.status(401).json({ message: "Not logged in" });
-
-    const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  
-    if (!token) return res.status(401).json({ message: "Not logged in" });
-
-    let userId;
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      userId = decoded.id;
-    } catch {
-      return res.status(401).json({ message: "Invalid token" });
-    }
+    const decoded = verifyUser(req);
+    if (!decoded) return res.status(401).json({ message: "Not logged in" });
 
     const { title, author, genre, isbn, publishedDate, description } = req.body;
     const coverImage = req.file ? req.file.path : null;
-
+  
     const newBook = new Book({
       title,
       author,
@@ -57,34 +53,26 @@ router.post("/", upload.single("coverImage"), async (req, res) => {
       publishedDate,
       description,
       coverImage,
-      user: userId,
+      user: decoded.id,
     });
 
     await newBook.save();
     res.json({ success: true, book: newBook });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ message: "Server Error: Could not save book" });
   }
 });
 
 // Delete book (only for logged-in users)
 router.delete("/:id", async (req, res) => {
   try {
-    const authHeader = req.headers["authorization"];
-    if (!authHeader) return res.status(401).json({ message: "Not logged in" });
+    const decoded = verifyUser(req);
+    if (!decoded) return res.status(401).json({ message: "Not logged in" });
 
-    const token = authHeader.split(" ")[1];
-    if (!token) return res.status(401).json({ message: "Not logged in" });
-
-    try {
-      jwt.verify(token, process.env.JWT_SECRET);
-    } catch {
-      return res.status(401).json({ message: "Invalid token" });
-    }
-
-    const book = await Book.findByIdAndDelete(req.params.id);
+    const book = await Book.findOneAndDelete({ _id: req.params.id, user: decoded.id });
     if (!book) return res.status(404).json({ message: "Book not found" });
+
 
     res.json({ message: "Book deleted successfully" });
   } catch (err) {

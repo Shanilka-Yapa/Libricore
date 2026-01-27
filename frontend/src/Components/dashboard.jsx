@@ -15,76 +15,48 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("token")||sessionStorage.getItem("token");
+
+        if (!token) {
+          navigate("/");
+          return;
+        }
+
+        const headers = { Authorization: `Bearer ${token}` };
 
         // --- Fetch Books ---
-        const booksRes = await fetch("http://65.0.31.24:5000/api/books", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const booksRes = await fetch("http://65.0.31.24:5000/api/books", { headers });
         const booksData = await booksRes.json();
-        if (booksRes.ok && booksData) {
-          const booksArray = Array.isArray(booksData)
-            ? booksData
-            : booksData.books || [];
-          setBookCount(booksArray.length);
-        }
+        if (booksRes.ok) setBookCount(booksData.books?.length || 0);
 
         // --- Fetch Members ---
-        const membersRes = await fetch("http://65.0.31.24:5000/api/members", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const membersRes = await fetch("http://65.0.31.24:5000/api/members", { headers });
         const membersData = await membersRes.json();
-        console.log("Fetched members:", membersData);
+        if (membersRes.ok) setMemberCount(membersData.members?.length || 0);
 
-        if (membersRes.ok && membersData) {
-          const membersArray = Array.isArray(membersData)
-            ? membersData
-            : membersData.members || [];
-          setMemberCount(membersArray.length);
-        }
 
         // Fetch Recent Borrowings for Dashboard table 
-        const recentRes = await fetch("http://65.0.31.24:5000/api/borrowings", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const recentData = await recentRes.json();
+        const borrowRes = await fetch("http://65.0.31.24:5000/api/borrowings", { headers });
+        const borrowData = await borrowRes.json();
 
-        if (recentRes.ok && recentData.borrowings) {
-          // Sort by loan date (latest first) and take only 3
-          const latestThree = recentData.borrowings
-            .sort(
-              (a, b) => new Date(b.loanDate || 0) - new Date(a.loanDate || 0)
-            )
-            .slice(0, 3);
+        if (borrowRes.ok && borrowData.borrowings) {
+          const allBorrowings = borrowData.borrowings;
 
-          setRecentBorrowings(latestThree);
-        }
-
-
-        // --- Fetch Loans (Borrowed or Overdue) ---
-        const loanres = await fetch("http://65.0.31.24:5000/api/borrowings", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const loanData = await loanres.json();
-        console.log("Fetched loans:", loanData);
-
-        if (loanres.ok && loanData) {
-          const loanArray = Array.isArray(loanData)
-            ? loanData
-            : loanData.borrowings || [];
-
-          // Filter only Borrowed or Overdue
-          const activeLoans = loanArray.filter(
+          //Count active loans (Borrowed or Overdue)
+          const activeLoans = allBorrowings.filter(
             (l) => l.status === "Borrowed" || l.status === "Overdue"
           );
+          setLoanCount(activeLoans.length);
 
-          // Count all borrowed or overdue books
-            setLoanCount(activeLoans.length);
-
-
-          // Count overdue separately for Overdue card
-          const overdueLoans = loanArray.filter((l) => l.status === "Overdue");
+          //count only the overdue ones
+          const overdueLoans = allBorrowings.filter((l) => l.status === "Overdue");
           setOverdueCount(overdueLoans.length);
+
+          //sort and get the latest three for recent activity
+          const latestThree = [...allBorrowings]
+            .sort((a,b) => new Date(b.loanDate || 0) - new Date(a.loanDate || 0))
+            .slice(0, 3);
+          setRecentBorrowings(latestThree);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -92,7 +64,7 @@ const Dashboard = () => {
     };
 
     fetchData();
-  }, []);
+  }, [navigate]); 
 
   // ✅ Handle card clicks for navigation
   const handleCardClick = (label) => {

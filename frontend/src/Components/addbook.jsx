@@ -39,6 +39,11 @@ const AddBook = () => {
       return;
     }
 
+    if(!bookData.genre){
+      alert("Please select a genre");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("title", bookData.title);
     formData.append("author", bookData.author);
@@ -71,9 +76,11 @@ const AddBook = () => {
         });
       } else {
         alert(data.message || "Failed to add book");
-      }
+        if(res.status === 401){
+          navigate("/");
+      }}
     } catch (err) {
-      console.error(err);
+      console.error("Fetch error:", err);
       alert("Error connecting to server");
     }
   };

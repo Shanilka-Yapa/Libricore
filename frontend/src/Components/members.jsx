@@ -11,7 +11,12 @@ const Members = () => {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+        if (!token) {
+          navigate("/");
+          return;
+        }
+
         const res = await fetch("http://65.0.31.24:5000/api/members", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -23,6 +28,7 @@ const Members = () => {
           setMembers(membersArray);
         } else {
           console.error("Failed to fetch members");
+          if (res.status === 401) navigate("/"); // Unauthorized, redirect to login
         }
       } catch (error) {
         console.error("Error fetching members:", error);
