@@ -106,7 +106,7 @@ const Signup = () => {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute inset-y-0 right-0 px-3 flex items-center text-sm text-gray-600"
               >
-                {showPassword ? "Show" : "Hide"}
+                {showPassword ? "Hide" : "Show"}
               </button>
             </div>
             </div>
