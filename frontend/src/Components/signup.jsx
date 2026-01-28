@@ -5,6 +5,7 @@ import logo1 from "../Images/Logo.png";
 
 const Signup = () => {
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     email: "",
