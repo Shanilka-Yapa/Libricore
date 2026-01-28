@@ -30,15 +30,18 @@ const ManageBooks = () => {
 
   //Search for Members/Books as user types
   const handleSearchsuggestions = async (type, query) => {
-    if(query.length < 1) return;
+    if(query.length < 1) {
+      type === `member` ? setMemberSuggestions([]) : setBookSuggestions([]);
+      return;
+    }
     try{
-      const token = localStorage.getItem("token")||sessionStorage.getItem("token");
       const endpoint = type === `member` ? `members/search?q=${query}` : `books/search?q=${query}`;
-      
       const res = await fetch(`http://65.0.31.24:5000/api/${endpoint}`, { headers: getAuthHeader() });
       const data = await res.json();
+
       if (res.ok){
-        type === `member` ? setMemberSuggestions(data.members) : setBookSuggestions(data.books);
+        const results = Array.isArray(data)? data : (data.books || data.members || []);
+        type === `member` ? setMemberSuggestions(results) : setBookSuggestions(results);
       }
     }catch(err){
       console.error(`Error fetching ${type} suggestions:`, err);
@@ -107,16 +110,18 @@ const ManageBooks = () => {
   const handleAddBorrowing = async (e) => {
     e.preventDefault();
     try {
+      const recordToSave = { ...newBorrowing, id: `BRW-${Date.now()}` };
       const res = await fetch("http://65.0.31.24:5000/api/borrowings", {
         method: "POST",
         headers: getAuthHeader(),
-        body: JSON.stringify(newBorrowing),
+        body: JSON.stringify(recordToSave),
       });
 
       const data = await res.json();
       if (res.ok) {
         setBooks([...books, data.borrowing]);
         setShowModal(false);
+        setNewBorrowing({title:"", author:"", memberId:"", loanDate:new Date().toISOString().split("T")[0], returnDate:"", status:"Borrowed"});
         alert("Borrowing entry added successfully!");
       } else {
         alert(data.message || "Failed to add borrowing");
@@ -171,7 +176,7 @@ const ManageBooks = () => {
                 <th className="py-3 px-4">Book ID</th>
                 <th className="py-3 px-4">Title</th>
                 <th className="py-3 px-4">Author</th>
-                <th className="py-3 px-4">Borrower</th>
+                <th className="py-3 px-4">MemberId</th>
                 <th className="py-3 px-4">Loan Date</th>
                 <th className="py-3 px-4">Return Date</th>
                 <th className="py-3 px-4">Status</th>
@@ -236,12 +241,25 @@ const ManageBooks = () => {
                   name="title"
                   placeholder="Enter book title"
                   value={newBorrowing.title}
-                  onChange={(e) =>
-                    setNewBorrowing({ ...newBorrowing, title: e.target.value })
-                  }
+                  onChange={(e) =>{
+                    setNewBorrowing({ ...newBorrowing, title: e.target.value });
+                    handleSearchsuggestions(`book`, e.target.value);
+                  }}
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#4B0000] focus:outline-none"
                   required
                 />
+                {bookSuggestions.length > 0 && (
+                  <ul className="border border-gray-300 rounded-lg mt-1 max-h-40 overflow-y-auto">
+                    {bookSuggestions.map((book) => (
+                      <li key = {book._id} className="p-2 hover:bg-gray-100 cursor-pointer text-sm" onClick={ () => {
+                        setNewBorrowing({ ...newBorrowing, title: book.title , author: book.author});
+                        setBookSuggestions([]);
+                      }}> 
+                      {book.title} <span className="text-gray-400 text-xs">{book.author}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
               <div>
@@ -261,24 +279,38 @@ const ManageBooks = () => {
                 />
               </div>
 
-              <div>
+              <div className="relative">
                 <label className="block text-gray-700 font-medium mb-1">
-                  Borrower Name
+                  Member Id
                 </label>
                 <input
                   type="text"
                   name="borrower"
                   placeholder="Enter borrower's name"
                   value={newBorrowing.borrower}
-                  onChange={(e) =>
+                  onChange={(e) =>{
                     setNewBorrowing({
                       ...newBorrowing,
                       borrower: e.target.value,
-                    })
-                  }
+                    });
+                    handleSearchsuggestions(`member`, e.target.value);
+
+                  }}
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#4B0000] focus:outline-none"
                   required
                 />
+                {memberSuggestions.length > 0 && (
+                  <ul className="absolute z-10 w-full bg-white border rounded-lg shadow-lg mt-1 max-h-40 overflow-y-auto">
+                    {memberSuggestions.map((m) => (
+                      <li key={m._id} className="p-2 hover:bg-gray-100 cursor-pointer text-sm" onClick={() => {
+                        setNewBorrowing({ ...newBorrowing, borrower: m.id });
+                        setMemberSuggestions([]);
+                      }}>
+                        <strong>{m.id}</strong> - {m.name}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
               <div>
