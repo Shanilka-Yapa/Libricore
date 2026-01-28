@@ -81,5 +81,28 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+//Search books
+router.get("/search/:query", async (req, res) => {
+  try {
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Not logged in" });
+
+    const query = req.query.q;
+    if(!query) return res.json([]);
+
+    const books = await Book.find({
+      user: userId,
+      $or: [
+        { title: { $regex: query, $options: "i" } },
+        { author: { $regex: query, $options: "i" } }
+      ]
+    }).limit(5);
+
+    res.json(books);
+  } catch (err) {
+    res.status(500).json({ message: "Error searching books", error: err.message });
+  }
+});
+
 
 module.exports = router;

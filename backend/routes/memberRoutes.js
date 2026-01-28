@@ -16,7 +16,7 @@ const verifyUser = (req) => {
 };
 
 
-// ✅ GET all members
+// GET all members
 router.get("/", async (req, res) => {
   try {
     const decoded = verifyUser(req);
@@ -29,7 +29,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// ✅ POST: Add a new member (with unique ID check)
+// POST: Add a new member (with unique ID check)
 router.post("/", async (req, res) => {
   try {
     const decoded = verifyUser(req);
@@ -49,6 +49,26 @@ router.post("/", async (req, res) => {
     res.status(201).json({ message: "Member added successfully!", member: newMember });
   } catch (err) {
     res.status(500).json({ message: "Error adding member", error: err.message });
+  }
+});
+
+//Search members by ID
+router.get("/search",async (req,res)=>{
+  try{
+    const userId = getUderId(req);
+    if(!userId) return res.status(401).json({message:"Not logged in"});
+
+    const query = req.query.q;
+    if (!query) return res.json([]);
+
+    const members = await Member.find({
+      user: userId,
+      id: { $regex: query, $options: "i" }
+    }).limit(5);
+
+    res.json(members);
+  } catch(err){
+    res.status(500).json({message:"Error searching members", error: err.message});
   }
 });
 

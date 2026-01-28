@@ -7,16 +7,45 @@ const ManageBooks = () => {
   const [books, setBooks] = useState([]);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
+
+  const [memberSuggestions, setMemberSuggestions] = useState([]);
+  const [bookSuggestions, setBookSuggestions] = useState([]);
+
   const [newBorrowing, setNewBorrowing] = useState({
     title: "",
     author: "",
-    borrower: "",
-    loanDate: "",
+    memberId: "",
+    loanDate: new Date().toISOString().split("T")[0],
     returnDate: "",
     status: "Borrowed",
   });
 
-  // ✅ Fetch books from backend & auto-mark overdue ones
+  const getAuthHeader = () => {
+    const token = localStorage.getItem("token")||sessionStorage.getItem("token");
+    return {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    };
+  };
+
+  //Search for Members/Books as user types
+  const handleSearchsuggestions = async (type, query) => {
+    if(query.length < 1) return;
+    try{
+      const token = localStorage.getItem("token")||sessionStorage.getItem("token");
+      const endpoint = type === `member` ? `members/search?q=${query}` : `books/search?q=${query}`;
+      
+      const res = await fetch(`http://65.0.31.24:5000/api/${endpoint}`, { headers: getAuthHeader() });
+      const data = await res.json();
+      if (res.ok){
+        type === `member` ? setMemberSuggestions(data.members) : setBookSuggestions(data.books);
+      }
+    }catch(err){
+      console.error(`Error fetching ${type} suggestions:`, err);
+    }
+  };
+
+  // Fetch books from backend & auto-mark overdue ones
   const fetchBorrowings = async () => {
     try {
       const token = localStorage.getItem("token")||sessionStorage.getItem("token");
@@ -50,7 +79,7 @@ const ManageBooks = () => {
     fetchBorrowings();
   }, []);
 
-  // ✅ Update status (can be called manually or from overdue check)
+  // Update status (can be called manually or from overdue check)
   const updateStatus = async (id, newStatus, updateFrontend = true) => {
     try {
       if (updateFrontend) {
@@ -74,39 +103,29 @@ const ManageBooks = () => {
     }
   };
 
-  // ✅ Add new borrowing
+  // Add new borrowing
   const handleAddBorrowing = async (e) => {
     e.preventDefault();
     try {
-      const id = `B${(books.length + 1).toString().padStart(3, "0")}`;
-      const newEntry = { id, ...newBorrowing };
-
       const res = await fetch("http://65.0.31.24:5000/api/borrowings", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newEntry),
+        headers: getAuthHeader(),
+        body: JSON.stringify(newBorrowing),
       });
 
       const data = await res.json();
       if (res.ok) {
         setBooks([...books, data.borrowing]);
         setShowModal(false);
-        setNewBorrowing({
-          title: "",
-          author: "",
-          borrower: "",
-          loanDate: "",
-          returnDate: "",
-          status: "Borrowed",
-        });
+        alert("Borrowing entry added successfully!");
       } else {
-        alert(data.message);
+        alert(data.message || "Failed to add borrowing");
       }
     } catch (error) {
       console.error("Error adding borrowing:", error);
     }
   };
-
+      
   const filteredBooks = books.filter(
     (b) =>
       b.title.toLowerCase().includes(search.toLowerCase()) ||
