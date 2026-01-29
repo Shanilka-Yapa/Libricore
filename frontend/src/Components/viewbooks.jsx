@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const ViewBooks = () => {
+  const API_BASE = import.meta.env.VITE_API_URL || "http://65.0.31.24:5000";
   const [searchTerm, setSearchTerm] = useState("");
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +18,7 @@ const ViewBooks = () => {
       }
 
       try {
-        const res = await fetch("http://65.0.31.24:5000/api/books", {
+        const res = await fetch(`${API_BASE}/api/books`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -46,14 +47,15 @@ const ViewBooks = () => {
     if (window.confirm("Are you sure you want to delete this book?")) {
       try {
         const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-        const res =await fetch(`http://65.0.31.24:5000/api/books/${id}`, {
+        const res =await fetch(`${API_BASE}/api/books/${id}`, {
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        if (!res.ok) {
+        if (res.ok) {
           setBooks(books.filter((b) => b._id !== id));
+          alert ("Book deleted successfully");
         } else {
           const errorData = await res.json();
           alert(errorData.message || "Failed to delete book");
@@ -103,9 +105,10 @@ const ViewBooks = () => {
             <div className="h-64 bg-gray-100 flex items-center justify-center">
               {book.coverImage ? (
                 <img
-                  src={`http://65.0.31.24:5000/${book.coverImage.replace(/\\/g, "/")}`}
+                  src={`${API_BASE}/${book.coverImage.replace(/\\/g, "/").replace("uploads/","")}`}
                   alt={book.title}
                   className="w-auto h-full object-contain"
+                  onError={(e)=>{e.target.src='https://via.placeholder.com/150';}}
                 />
               ) : (
                 <span className="text-gray-400">No Image</span>

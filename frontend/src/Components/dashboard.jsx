@@ -4,6 +4,7 @@ import logo from "../Images/Logo.png";
 import dashboardImage from "../Images/dashboard-footer.png";
 
 const Dashboard = () => {
+  const API_BASE = import.meta.env.VITE_API_URL || "http://65.0.31.24:5000";
   const navigate = useNavigate();
   const [bookCount, setBookCount] = useState(0);
   const [memberCount, setMemberCount] = useState(0);
@@ -25,18 +26,18 @@ const Dashboard = () => {
         const headers = { Authorization: `Bearer ${token}` };
 
         // --- Fetch Books ---
-        const booksRes = await fetch("http://65.0.31.24:5000/api/books", { headers });
+        const booksRes = await fetch(`${API_BASE}/api/books`, { headers });
         const booksData = await booksRes.json();
         if (booksRes.ok) setBookCount(booksData.books?.length || 0);
 
         // --- Fetch Members ---
-        const membersRes = await fetch("http://65.0.31.24:5000/api/members", { headers });
+        const membersRes = await fetch(`${API_BASE}/api/members`, { headers });
         const membersData = await membersRes.json();
         if (membersRes.ok) setMemberCount(membersData.members?.length || 0);
 
 
         // Fetch Recent Borrowings for Dashboard table 
-        const borrowRes = await fetch("http://65.0.31.24:5000/api/borrowings", { headers });
+        const borrowRes = await fetch(`${API_BASE}/api/borrowings`, { headers });
         const borrowData = await borrowRes.json();
 
         if (borrowRes.ok && borrowData.borrowings) {

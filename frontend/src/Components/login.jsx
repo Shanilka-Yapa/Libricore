@@ -4,6 +4,7 @@ import img1 from "../Images/loginpage.png";
 import logo1 from "../Images/Logo.png";
 
 const Login = () => {
+  const API_BASE = import.meta.env.VITE_API_URL || "http://65.0.31.24:5000";
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -26,7 +27,7 @@ const Login = () => {
   e.preventDefault();
 
   try {
-    const res = await fetch("http://65.0.31.24:5000/api/auth/login", {
+    const res = await fetch(`${API_BASE}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

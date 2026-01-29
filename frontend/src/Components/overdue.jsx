@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Overdue = () => {
+  const API_BASE = import.meta.env.VITE_API_URL || "http://65.0.31.24:5000";
   const navigate = useNavigate();
   const [overdueBooks, setOverdueBooks] = useState([]);
   const [paidBooks, setPaidBooks] = useState([]);
@@ -17,9 +18,13 @@ const Overdue = () => {
   // ✅ Fetch Overdue & Paid records from backend
   const fetchData = async () => {
     try {
+      const headers = {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      };
       const [borrowingsRes, paidRes] = await Promise.all([
-        fetch("http://65.0.31.24:5000/api/borrowings"),
-        fetch("http://65.0.31.24:5000/api/borrowings/paid"),
+        fetch(`${API_BASE}/api/borrowings`, { headers }),
+        fetch(`${API_BASE}/api/borrowings/paid`, { headers }),
       ]);
 
       const borrowingsData = await borrowingsRes.json();
@@ -89,7 +94,7 @@ const Overdue = () => {
 
     try {
       const res = await fetch(
-        `http://65.0.31.24:5000/api/borrowings/${bookId}/pay`,
+        `${API_BASE}/api/borrowings/${bookId}/pay`,
         {
           method: "PUT",
           headers: { 
@@ -104,7 +109,7 @@ const Overdue = () => {
           }),
         }
       );
-
+      const data = await res.json();
       if (res.ok) {
         alert("✅ Fine recorded and marked as Paid!");
         closeCalculator();

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const AddBook = () => {
+  const API_BASE = import.meta.env.VITE_API_URL || "http://65.0.31.24:5000";
   const navigate = useNavigate();
 
   const [bookData, setBookData] = useState({
@@ -53,7 +54,7 @@ const AddBook = () => {
     if (bookData.coverImage) formData.append("coverImage", bookData.coverImage);
 
     try {
-      const res = await fetch("http://65.0.31.24:5000/api/books", {
+      const res = await fetch(`${API_BASE}/api/books`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

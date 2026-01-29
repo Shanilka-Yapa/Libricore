@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
 const Members = () => {
+  const API_BASE = import.meta.env.VITE_API_URL || "http://65.0.31.24:5000";
   const navigate = useNavigate();
   const [members, setMembers] = useState([]);
   const [search, setSearch] = useState("");
@@ -17,7 +18,7 @@ const Members = () => {
           return;
         }
 
-        const res = await fetch("http://65.0.31.24:5000/api/members", {
+        const res = await fetch(`${API_BASE}/api/members`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -46,6 +47,28 @@ const Members = () => {
       member.name?.toLowerCase().includes(search.toLowerCase()) ||
       (member.id?.toString().toLowerCase().includes(search.toLowerCase()))
   );
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this member?")) {
+      try {
+        const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+        const res = await fetch(`${API_BASE}/api/members/${id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          setMembers(members.filter((m) => m._id !== id && m.id !== id));
+          alert("Member deleted successfully");
+        }else{
+          const errorData = await res.json();
+          alert(errorData.message || "Failed to delete member");  
+        }
+      } catch (error) {
+        console.error("Error deleting member:", error);
+        alert("Failed to delete member");
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#F5E8E4] p-6">
@@ -96,6 +119,7 @@ const Members = () => {
                   <th className="py-3 px-4">Age</th>
                   <th className="py-3 px-4">Address</th>
                   <th className="py-3 px-4">Phone Number</th>
+                  <th className="py-3 px-4">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -109,6 +133,14 @@ const Members = () => {
                     <td className="py-3 px-4">{member.age}</td>
                     <td className="py-3 px-4">{member.address}</td>
                     <td className="py-3 px-4">{member.phone}</td>
+                    <td className="py-3 px-4">
+                      <button
+                        onClick={() => handleDelete(member._id || member.id)}
+                        className="bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700 transition-all"
+                      >
+                        Delete
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const ManageBooks = () => {
+  const API_BASE = import.meta.env.VITE_API_URL || "http://65.0.31.24:5000";
   
   const navigate = useNavigate();
   const [books, setBooks] = useState([]);
@@ -36,7 +37,7 @@ const ManageBooks = () => {
     }
     try{
       const endpoint = type === `member` ? `members/search?q=${query}` : `books/search?q=${query}`;
-      const res = await fetch(`http://65.0.31.24:5000/api/${endpoint}`, { headers: getAuthHeader() });
+      const res = await fetch(`${API_BASE}/api/${endpoint}`, { headers: getAuthHeader() });
       const data = await res.json();
 
       if (res.ok){
@@ -52,7 +53,7 @@ const ManageBooks = () => {
   const fetchBorrowings = async () => {
     try {
       const token = localStorage.getItem("token")||sessionStorage.getItem("token");
-      const res = await fetch("http://65.0.31.24:5000/api/borrowings",{
+      const res = await fetch(`${API_BASE}/api/borrowings`,{
         method: "GET",
         headers: { 
           "Authorization": `Bearer ${token}`,
@@ -91,9 +92,9 @@ const ManageBooks = () => {
         );
       }
 
-      const res = await fetch(`http://65.0.31.24:5000/api/borrowings/${id}`, {
+      const res = await fetch(`${API_BASE}/api/borrowings/${id}/status`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeader(),
         body: JSON.stringify({ status: newStatus }),
       });
 
@@ -111,7 +112,7 @@ const ManageBooks = () => {
     e.preventDefault();
     try {
       const recordToSave = { ...newBorrowing, id: `BRW-${Date.now()}` };
-      const res = await fetch("http://65.0.31.24:5000/api/borrowings", {
+      const res = await fetch(`${API_BASE}/api/borrowings`, {
         method: "POST",
         headers: getAuthHeader(),
         body: JSON.stringify(recordToSave),

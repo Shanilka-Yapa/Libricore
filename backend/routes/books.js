@@ -24,6 +24,11 @@ const verifyUser = (req, res) => {
   }
 };
 
+const getUserId = (req) => {
+  const decoded = verifyUser(req);
+  return decoded ? decoded.id : null;
+};
+
 // Get all books
 router.get("/", async (req, res) => {
   try {
@@ -44,7 +49,7 @@ router.post("/", upload.single("coverImage"), async (req, res) => {
     if (!decoded) return res.status(401).json({ message: "Not logged in" });
 
     const { title, author, genre, isbn, publishedDate, description } = req.body;
-    const coverImage = req.file ? req.file.path : null;
+    const coverImage = req.file ? req.file.filename : null;
   
     const newBook = new Book({
       title,
@@ -82,7 +87,7 @@ router.delete("/:id", async (req, res) => {
 });
 
 //Search books
-router.get("/search/:query", async (req, res) => {
+router.get("/search", async (req, res) => {
   try {
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Not logged in" });

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const AddMember = () => {
+  const API_BASE = import.meta.env.VITE_API_URL || "http://65.0.31.24:5000";
   const navigate = useNavigate();
 
   const [memberData, setMemberData] = useState({
@@ -27,7 +28,7 @@ const AddMember = () => {
     }
 
     try {
-      const res = await fetch("http://65.0.31.24:5000/api/members", {
+      const res = await fetch(`${API_BASE}/api/members`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

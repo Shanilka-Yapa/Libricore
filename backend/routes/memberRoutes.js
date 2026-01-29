@@ -15,6 +15,11 @@ const verifyUser = (req) => {
   }
 };
 
+const getUserId = (req) => {
+  const decoded = verifyUser(req);
+  return decoded ? decoded.id : null;
+};
+
 
 // GET all members
 router.get("/", async (req, res) => {
@@ -55,7 +60,7 @@ router.post("/", async (req, res) => {
 //Search members by ID
 router.get("/search",async (req,res)=>{
   try{
-    const userId = getUderId(req);
+    const userId = getUserId(req);
     if(!userId) return res.status(401).json({message:"Not logged in"});
 
     const query = req.query.q;
@@ -72,4 +77,21 @@ router.get("/search",async (req,res)=>{
   }
 });
 
+// Example Backend Route (memberRoutes.js)
+router.delete("/:id", async (req, res) => {
+  try {
+    const decoded = verifyUser(req); // Your JWT verification helper
+    if (!decoded) return res.status(401).json({ message: "Unauthorized" });
+
+    const deletedMember = await Member.findOneAndDelete({ 
+      _id: req.params.id, 
+      user: decoded.id 
+    });
+
+    if (!deletedMember) return res.status(404).json({ message: "Member not found" });
+    res.json({ message: "Member deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
 module.exports = router;
