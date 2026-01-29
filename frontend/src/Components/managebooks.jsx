@@ -111,6 +111,17 @@ const ManageBooks = () => {
   const handleAddBorrowing = async (e) => {
     e.preventDefault();
     try {
+      // Validate member ID exists in suggestions
+      if (!memberSuggestions.find(m => m.id === newBorrowing.borrower) && memberSuggestions.length > 0) {
+        alert("Please select a member from the dropdown");
+        return;
+      }
+      
+      if (!newBorrowing.borrower) {
+        alert("Member ID is required");
+        return;
+      }
+
       const recordToSave = { ...newBorrowing, id: `BRW-${Date.now()}` };
       const res = await fetch(`${API_BASE}/api/borrowings`, {
         method: "POST",
@@ -122,6 +133,7 @@ const ManageBooks = () => {
       if (res.ok) {
         setBooks([...books, data.borrowing]);
         setShowModal(false);
+        setMemberSuggestions([]);
         setNewBorrowing({title:"", author:"", memberId:"", loanDate:new Date().toISOString().split("T")[0], returnDate:"", status:"Borrowed"});
         alert("Borrowing entry added successfully!");
       } else {
@@ -129,6 +141,27 @@ const ManageBooks = () => {
       }
     } catch (error) {
       console.error("Error adding borrowing:", error);
+    }
+  };
+
+  // Delete borrowing
+  const handleDeleteBorrowing = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this borrowing record?")) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/borrowings/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeader(),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setBooks((prev) => prev.filter((b) => b.id !== id));
+        alert("Borrowing deleted successfully");
+      } else {
+        alert(data.message || "Failed to delete borrowing");
+      }
+    } catch (err) {
+      console.error("Error deleting borrowing:", err);
+      alert("Failed to delete borrowing");
     }
   };
       
@@ -181,6 +214,7 @@ const ManageBooks = () => {
                 <th className="py-3 px-4">Loan Date</th>
                 <th className="py-3 px-4">Return Date</th>
                 <th className="py-3 px-4">Status</th>
+                <th className="py-3 px-4">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -216,6 +250,14 @@ const ManageBooks = () => {
                       <option value="Returned">Returned</option>
                       <option value="Overdue">Overdue</option>
                     </select>
+                  </td>
+                  <td className="py-3 px-4">
+                    <button
+                      onClick={() => handleDeleteBorrowing(b.id)}
+                      className="bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700 transition-all"
+                    >
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}

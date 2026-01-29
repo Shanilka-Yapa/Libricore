@@ -2,6 +2,7 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const Borrowing = require("../models/Borrowing");
 const PaidFine = require("../models/PaidFine");
+const Member = require("../models/memberModel");
 
 const router = express.Router();
 
@@ -49,6 +50,12 @@ router.post("/", async (req, res) => {
     if (!userId) return res.status(401).json({ message: "Not logged in" });
 
     const { id, title, author, borrower, loanDate, returnDate, status } = req.body;
+
+    // Validate that member exists
+    const memberExists = await Member.findOne({ id: borrower, user: userId });
+    if (!memberExists) {
+      return res.status(404).json({ message: `Member ID "${borrower}" not found. Please register the member first.` });
+    }
 
     const existing = await Borrowing.findOne({ id, user: userId });
     if (existing) return res.status(400).json({ message: "Borrowing ID already exists" });
@@ -161,6 +168,21 @@ router.get("/stats", async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ message: "Error fetching stats" });
+  }
+});
+
+/* ----------------------------- DELETE a borrowing ---------------------------- */
+router.delete("/:id", async (req, res) => {
+  try {
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Not logged in" });
+
+    const deleted = await Borrowing.findOneAndDelete({ id: req.params.id, user: userId });
+    if (!deleted) return res.status(404).json({ message: "Borrowing not found" });
+
+    res.json({ message: "Borrowing deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Error deleting borrowing" });
   }
 });
 
