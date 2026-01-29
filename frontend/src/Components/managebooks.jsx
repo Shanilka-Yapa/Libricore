@@ -397,7 +397,12 @@ const ManageBooks = () => {
               <div className="flex justify-end gap-2 mt-2">
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
+                  onClick={() => {
+                    setShowModal(false);
+                    setNewBorrowing({title:"", author:"", borrower:"", loanDate:new Date().toISOString().split("T")[0], returnDate:"", status:"Borrowed"});
+                    setMemberSuggestions([]);
+                    setBookSuggestions([]);
+                  }}
                   className="px-4 py-2 rounded-lg border hover:bg-gray-100 transition-all"
                 >
                   Cancel
