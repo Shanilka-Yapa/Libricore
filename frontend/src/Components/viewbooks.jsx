@@ -8,6 +8,9 @@ const ViewBooks = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  console.log("🔍 API_BASE:", API_BASE);
+  console.log("🔍 VITE_API_URL from env:", import.meta.env.VITE_API_URL);
+
   useEffect(() => {
     const fetchBooks = async () => {
       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
@@ -104,12 +107,15 @@ const ViewBooks = () => {
             {/* Cover Image */}
             <div className="h-64 bg-gray-100 flex items-center justify-center">
               {book.coverImage ? (
-                <img
-                  src={`${API_BASE}/uploads/${book.coverImage.replace(/\\/g, "/").replace("uploads/", "")}`}
-                  alt={book.title}
-                  className="w-auto h-full object-contain"
-                  onError={(e)=>{e.target.src='https://via.placeholder.com/150';}}
-                />
+                <>
+                  {console.log("📖 Book:", book.title, "Image path:", book.coverImage, "URL:", `${API_BASE}/uploads/${book.coverImage.replace(/\\/g, "/").replace("uploads/", "")}`)}
+                  <img
+                    src={`${API_BASE}/uploads/${book.coverImage.replace(/\\/g, "/").replace("uploads/", "")}`}
+                    alt={book.title}
+                    className="w-auto h-full object-contain"
+                    onError={(e)=>{e.target.style.display='none';}}
+                  />
+                </>
               ) : (
                 <span className="text-gray-400">No Image</span>
               )}
