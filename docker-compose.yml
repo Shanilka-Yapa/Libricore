@@ -20,7 +20,7 @@ services:
     depends_on:
       - mongo
     volumes:
-      -./uploads:/app/uploads
+      - ./uploads:/app/uploads
 
   mongo:
     image: mongo:6

@@ -105,7 +105,7 @@ const ViewBooks = () => {
             <div className="h-64 bg-gray-100 flex items-center justify-center">
               {book.coverImage ? (
                 <img
-                  src={`${API_BASE}/${book.coverImage.replace(/\\/g, "/").startsWith("uploads/") ? book.coverImage.replace(/\\/g, "/") : `uploads/${book.coverImage.replace(/\\/g, "/")}`}`}
+                  src={`${API_BASE}/uploads/${book.coverImage.replace(/\\/g, "/").replace("uploads/", "")}`}
                   alt={book.title}
                   className="w-auto h-full object-contain"
                   onError={(e)=>{e.target.src='https://via.placeholder.com/150';}}

@@ -13,9 +13,10 @@ const app = express();
 
 // ✅ Middleware
 app.use(cors({
-  origin: "http://65.0.31.24", // your frontend URL
+  origin: ["http://65.0.31.24", "http://localhost:3000", "http://localhost"], // frontend URLs
   methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
+  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 app.use(express.json());
