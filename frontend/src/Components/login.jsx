@@ -26,6 +26,9 @@ const Login = () => {
   const handleSubmit = async (e) => {
   e.preventDefault();
 
+  console.log("🔍 API_BASE (login):", API_BASE);
+  console.log("🔍 VITE_API_URL (env):", import.meta.env.VITE_API_URL);
+
   try {
     const res = await fetch(`${API_BASE}/api/auth/login`, {
       method: "POST",
@@ -53,7 +56,8 @@ const Login = () => {
       alert(data.message || "Login failed");
     }
   } catch (err) {
-    alert("Error connecting to server");
+    console.error("Login fetch error:", err);
+    alert(`Error connecting to server: ${err && err.message ? err.message : err}`);
   }
 };
 
