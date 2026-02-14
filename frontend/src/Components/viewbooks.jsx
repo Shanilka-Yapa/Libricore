@@ -113,7 +113,10 @@ const ViewBooks = () => {
                     src={`${API_BASE}/uploads/${book.coverImage.replace(/\\/g, "/").replace("uploads/", "")}`}
                     alt={book.title}
                     className="w-auto h-full object-contain"
-                    onError={(e)=>{e.target.style.display='none';}}
+                    onError={(e) => {
+                      e.onerror = null;
+                      e.target.src = `${API_BASE}/uploads/placeholder.svg`;
+                    }}
                   />
                 </>
               ) : (

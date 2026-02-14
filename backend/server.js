@@ -7,6 +7,8 @@ const authRoutes = require("./routes/authRoutes");
 const bookRoutes = require("./routes/books");
 const memberRoutes = require("./routes/memberRoutes");
 const borrowingsRoutes = require("./routes/Borrowingroutes");
+const path = require("path");
+const fs = require("fs");
 
 dotenv.config();
 const app = express();
@@ -20,7 +22,33 @@ app.use(cors({
 }));
 
 app.use(express.json());
-app.use("/uploads", express.static("uploads"));
+
+// Serve upload files but return a small inline placeholder SVG when file is missing.
+const uploadsPath = path.join(__dirname, "uploads");
+// Ensure uploads directory exists (will be a mounted volume in production)
+try {
+  fs.mkdirSync(uploadsPath, { recursive: true });
+} catch (e) {
+  console.warn("Could not ensure uploads directory:", e.message);
+}
+app.use("/uploads", express.static(uploadsPath));
+
+app.get("/uploads/*", (req, res) => {
+  const rel = req.params[0] || ""; // wildcard part after /uploads/
+  const filePath = path.join(uploadsPath, rel);
+  fs.access(filePath, fs.constants.R_OK, (err) => {
+    if (!err) return res.sendFile(filePath);
+
+    // Inline SVG placeholder to avoid 404s when files are missing.
+    const svg = `<?xml version="1.0" encoding="UTF-8"?>\n` +
+      `<svg xmlns='http://www.w3.org/2000/svg' width='420' height='300' viewBox='0 0 420 300'>` +
+      `<rect width='100%' height='100%' fill='#F3F4F6'/>` +
+      `<text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#9CA3AF' font-family='Arial, sans-serif' font-size='20'>Image not available</text>` +
+      `</svg>`;
+    res.setHeader("Content-Type", "image/svg+xml");
+    res.status(200).send(svg);
+  });
+});
 
 // ✅ Routes
 app.use("/api/auth", authRoutes);

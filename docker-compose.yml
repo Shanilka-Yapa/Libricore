@@ -20,7 +20,7 @@ services:
     depends_on:
       - mongo
     volumes:
-      - ./uploads:/app/uploads
+      - uploads-volume:/usr/src/app/uploads
 
   mongo:
     image: mongo:6
@@ -32,3 +32,4 @@ services:
 
 volumes:
   data-volume:
+  uploads-volume:
