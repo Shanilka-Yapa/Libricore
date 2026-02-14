@@ -33,28 +33,41 @@ jobs:
           docker push $REGISTRY/my-frontend:latest
 
       - name: Deploy to EC2 via SSH
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v0.1.5
         with:
           host: 65.0.31.24  # Your current EC2 IP
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd ~/app
-            # Ensure repo is up-to-date so changes to docker-compose.yml are applied
-            git fetch --all || true
-            git reset --hard origin/main || true
+            # Ensure app directory exists
+            if [ ! -d ~/app ]; then
+              mkdir -p ~/app
+            fi
+            cd ~/app || exit 1
+
+            # If this is a git repo, update it. Otherwise try to download the compose file as a fallback.
+            if [ -d .git ]; then
+              git fetch --all || echo "git fetch failed"
+              git reset --hard origin/main || echo "git reset failed"
+            else
+              echo "No git repo at ~/app - downloading docker-compose.yml from GitHub as fallback"
+              curl -H 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' -L https://raw.githubusercontent.com/${{ github.repository }}/main/docker-compose.yml -o ~/app/docker-compose.yml || echo "failed to download docker-compose.yml"
+            fi
 
             # Create named Docker volume for uploads if it doesn't exist
             docker volume inspect uploads-volume >/dev/null 2>&1 || docker volume create uploads-volume
 
-            # If legacy host uploads folder exists, copy its contents into the named volume (idempotent)
+            # If legacy host uploads folder exists and is non-empty, copy its contents into the named volume (idempotent)
             if [ -d ./uploads ] && [ "$(ls -A ./uploads 2>/dev/null)" ]; then
-              docker run --rm -v "$(pwd)/uploads":/from -v uploads-volume:/to busybox sh -c "cp -a /from/. /to/ || true"
+              echo "Migrating existing ./uploads into uploads-volume"
+              docker run --rm -v "$(pwd)/uploads":/from -v uploads-volume:/to busybox sh -c 'if [ -d /from ] && [ "$(ls -A /from 2>/dev/null)" ]; then cp -a /from/. /to/ || true; fi'
+            else
+              echo "No legacy uploads to migrate or folder empty"
             fi
 
             # Logs into ECR on the EC2 so it has permission to pull
             aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 086627396918.dkr.ecr.ap-south-1.amazonaws.com
             docker-compose pull
-            docker-compose up -d --remove-orphans
+            docker-compose up -d --force-recreate --remove-orphans
             # Optional: cleans up old images to save disk space
-            docker image prune -f
+            docker image prune -f || true
