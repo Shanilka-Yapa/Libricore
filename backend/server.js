@@ -33,8 +33,8 @@ try {
 }
 app.use("/uploads", express.static(uploadsPath));
 
-app.get("/uploads/*", (req, res) => {
-  const rel = req.params[0] || ""; // wildcard part after /uploads/
+app.get("/uploads/:filePath(*)", (req, res) => {
+  const rel = req.params.filePath || ""; // wildcard part after /uploads/
   const filePath = path.join(uploadsPath, rel);
   fs.access(filePath, fs.constants.R_OK, (err) => {
     if (!err) return res.sendFile(filePath);
