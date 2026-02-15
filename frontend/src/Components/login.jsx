@@ -69,7 +69,7 @@ const Login = () => {
         {/* Left Side - Form */}
         <div className="w-1/2 flex flex-col justify-center px-10">
           <h2 className="text-2xl font-bold text-center mb-2 text-gray-800">
-            Welcome back to Libricore
+            Welcome back to Libricore Shanilka Thulshani Yapa
           </h2>
           <p className="text-sm text-gray-500 text-center mb-8">
             Log in to continue managing your library.
