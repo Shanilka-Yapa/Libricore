@@ -200,7 +200,7 @@ const Dashboard = () => {
 
         {/* Quick actions */}
         <aside className="bg-white rounded-lg shadow p-6 space-y-4">
-          <h3 className="text-md font-medium text-gray-900">Quick Actions</h3>
+          <h3 className="text-md font-medium text-gray-900">Quick Actions box</h3>
           <div className="flex flex-col gap-3">
             <Link
               to="/add-book"
